@@ -1,0 +1,148 @@
+import 'package:edutrack_application/modules/Batch/presentation/views/create_batch.dart';
+import 'package:edutrack_application/modules/Batch/presentation/views/edit_batch_table.dart';
+import 'package:edutrack_application/modules/Batch/presentation/views/view_batch.dart';
+import 'package:flutter/material.dart';
+
+class ManageBatchScreen extends StatelessWidget {
+  const ManageBatchScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+  backgroundColor: Colors.white,
+  appBar: AppBar(
+    elevation: 0,
+
+    /// ✅ SHOW BACK ARROW
+    automaticallyImplyLeading: true,
+
+    /// ✅ BACK ARROW COLOR WHITE
+    iconTheme: const IconThemeData(color: Colors.white),
+
+    backgroundColor: Colors.transparent,
+    flexibleSpace: Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xff3f5efb), Color(0xfffc466b)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+    ),
+
+    actions: [
+      Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: CircleAvatar(
+          radius: 22,
+          backgroundColor: Colors.white,
+          child: ClipOval(
+            child: Image.asset(
+              "assets/logo.png",
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ),
+    ],
+  ),
+
+
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _actionButton(
+              title: "Create Batch",
+              icon: Icons.add_circle_outline,
+              onTap: () {
+                 Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CreateBatchScreen()
+                          ),
+                        );
+                
+              },
+            ),
+            const SizedBox(height: 20),
+            _actionButton(
+              title: "View Batch",
+              icon: Icons.list_alt_rounded,
+              onTap: () {
+                 Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CollegesScreen()
+                          ),
+                        );
+              },
+            ),
+             const SizedBox(height: 20),
+            _actionButton(
+              title: "Edit Batch",
+              icon: Icons.edit_document,
+              onTap: () {
+                 Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditBatchScreen()
+                          ),
+                        );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Reusable Action Button
+  Widget _actionButton({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: 260,
+        height: 60,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xff3f5efb),
+              Color(0xfffc466b),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 26),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
