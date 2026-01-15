@@ -30,8 +30,7 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
           debugPrint("✅ QR SCANNED: $qrValue");
 
           try {
-            /// ✅ EXPECTED FORMAT
-            /// batchId_yyyy-MM-dd
+            /// ✅ EXPECTED FORMAT: batchId_yyyy-MM-dd
             if (!qrValue.contains('_')) {
               _show("❌ Invalid QR format");
               scanned = false;
@@ -40,24 +39,13 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
 
             final parts = qrValue.split('_');
             final batchId = parts[0];
-            final qrDate = parts[1];
+            final qrDate = parts[1]; // optional
 
-            final today =
-                DateTime.now().toIso8601String().substring(0, 10);
-
-            /// ❌ EXPIRED QR
-            if (qrDate != today) {
-              _show("❌ QR expired");
-              scanned = false;
-              return;
-            }
-
-            /// 🔍 FETCH BATCH DIRECTLY BY ID
-            final batchRef = FirebaseFirestore.instance
+            /// 🔍 FETCH BATCH
+            final batchSnap = await FirebaseFirestore.instance
                 .collection('batches')
-                .doc(batchId);
-
-            final batchSnap = await batchRef.get();
+                .doc(batchId)
+                .get();
 
             if (!batchSnap.exists) {
               _show("❌ Batch not found");
@@ -65,14 +53,15 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
               return;
             }
 
-            /// 🔍 VERIFY DAILY QR EXISTS
-            final dailyQrSnap = await batchRef
-                .collection('daily_qr')
-                .doc(qrDate)
-                .get();
+            final batch = batchSnap.data()!;
 
-            if (!dailyQrSnap.exists) {
-              _show("❌ Attendance QR not active");
+            /// 📅 VALIDATE DATE RANGE
+            final today = DateTime.now();
+            final startDate = DateTime.parse(batch['start_date']);
+            final endDate = DateTime.parse(batch['end_date']);
+
+            if (today.isBefore(startDate) || today.isAfter(endDate)) {
+              _show("❌ Attendance not allowed today");
               scanned = false;
               return;
             }
@@ -84,7 +73,7 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
               MaterialPageRoute(
                 builder: (_) => BatchAttendanceScreen(
                   batchId: batchId,
-                  batchData: batchSnap.data()!,
+                  batchData: batch,
                 ),
               ),
             );
@@ -102,6 +91,8 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
         .showSnackBar(SnackBar(content: Text(msg)));
   }
 }
+
+
 
 
 class BatchAttendanceScreen extends StatefulWidget {

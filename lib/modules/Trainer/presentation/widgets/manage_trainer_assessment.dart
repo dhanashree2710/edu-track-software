@@ -1,10 +1,12 @@
 
 import 'package:edutrack_application/modules/Assessment/presentation/views/add_assessment.dart';
 import 'package:edutrack_application/modules/Assessment/presentation/views/view_assessment_batch.dart';
+import 'package:edutrack_application/modules/Trainer/presentation/widgets/view_trainer_assigned_assessment.dart';
 import 'package:flutter/material.dart';
 
 class ManageTrainerAssessmentScreen extends StatelessWidget {
-  const ManageTrainerAssessmentScreen({super.key});
+   final String currentUserId;
+  const ManageTrainerAssessmentScreen({super.key, required this.currentUserId});
 
   @override
   Widget build(BuildContext context) {
@@ -67,17 +69,20 @@ class ManageTrainerAssessmentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _actionButton(
-              title: "View Assessments",
-              icon: Icons.list_alt_rounded,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AssessmentCollegesScreen(),
-                  ),
-                );
-              },
-            ),
+  title: "View Assessments",
+  icon: Icons.list_alt_rounded,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TrainerBatchListScreen(
+          trainerId: currentUserId, // ✅ FIXED
+        ),
+      ),
+    );
+  },
+),
+
             const SizedBox(height: 20),
           
           ],

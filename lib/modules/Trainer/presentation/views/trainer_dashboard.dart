@@ -207,18 +207,18 @@ class _TrainerDashboardState extends State<TrainerDashboard>
                       );
                     },
                   ),
-                  // dashboardCard(
-                  //   title: "Assessment",
-                  //   icon: Icons.assignment,
-                  //   colors: [Colors.purple, Colors.deepPurple],
-                  //   onTap: () {
-                  //     Navigator.push(
-                  //       context,
-                  //       MaterialPageRoute(
-                  //           builder: (_) => ManageTrainerAssessmentScreen()),
-                  //     );
-                  //   },
-                  // ),
+                  dashboardCard(
+                    title: "Assessment",
+                    icon: Icons.assignment,
+                    colors: [Colors.purple, Colors.deepPurple],
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => ManageTrainerAssessmentScreen(currentUserId: widget.currentUserId,)),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),

@@ -9,6 +9,7 @@ import 'package:edutrack_application/modules/Login/presentation/views/user_role_
 import 'package:edutrack_application/modules/Student/presentation/widgets/manage_student.dart';
 import 'package:edutrack_application/modules/Trainer/presentation/views/trainer_dashboard.dart';
 import 'package:edutrack_application/modules/Trainer/presentation/widgets/manage_trainer.dart';
+import 'package:edutrack_application/modules/Trainer/presentation/widgets/manage_trainer_assessment.dart';
 import 'package:edutrack_application/modules/Trainer/presentation/widgets/view_trainer_batch.dart';
 import 'package:edutrack_application/utils/common/user_session.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -176,6 +177,12 @@ class CommonScaffold extends StatelessWidget {
           icon: Icons.group,
           label: "View Batch",
           page: TrainerCollegesScreen(currentUserId: UserSession().userId ?? '',)
+        ),
+          _drawerItem(
+          context,
+          icon: Icons.task_rounded,
+          label: "Assessment",
+          page: ManageTrainerAssessmentScreen(currentUserId: UserSession().userId ?? '',)
         ),
         // _drawerItem(
         //   context,

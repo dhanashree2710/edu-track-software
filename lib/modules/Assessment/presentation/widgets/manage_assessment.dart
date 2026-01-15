@@ -66,18 +66,18 @@ class ManageAssessmentScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
-            // _actionButton(
-            //   title: "View Assessments",
-            //   icon: Icons.list_alt_rounded,
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (_) => AssessmentCollegesScreen(),
-            //       ),
-            //     );
-            //   },
-            // ),
+            _actionButton(
+              title: "View Assessments",
+              icon: Icons.list_alt_rounded,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AssessmentCollegesScreen(),
+                  ),
+                );
+              },
+            ),
             // const SizedBox(height: 20),
             // _actionButton(
             //   title: "Edit Assessment",

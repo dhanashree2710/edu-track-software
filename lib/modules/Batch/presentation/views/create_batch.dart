@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -24,7 +23,7 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
 
   bool loading = false;
   String? batchId;
-  String? todayQr;
+  String? fixedQr;
 
   String? selectedTrainerId;
   String? selectedTrainerName;
@@ -36,33 +35,14 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
   @override
   void initState() {
     super.initState();
-    initFirebaseAndFetchTrainers();
+    fetchTrainers();
   }
 
-  /// 🔹 Initialize Firebase and fetch trainers
-  Future<void> initFirebaseAndFetchTrainers() async {
-    try {
-      await Firebase.initializeApp();
-      print("✅ Firebase initialized");
-      fetchTrainers();
-    } catch (e) {
-      print("❌ Firebase initialization error: $e");
-    }
-  }
-
-  /// 🔹 Fetch trainers from Firestore
+  /// 🔹 Fetch trainers
   Future<void> fetchTrainers() async {
-    try {
-      final snap =
-          await FirebaseFirestore.instance.collection('trainer').get();
-      print("Total trainers fetched: ${snap.docs.length}");
-      for (var doc in snap.docs) {
-        print("Trainer: ${doc['trainer_id']} - ${doc['name']}");
-      }
-      setState(() => trainers = snap.docs);
-    } catch (e) {
-      print("❌ Error fetching trainers: $e");
-    }
+    final snap =
+        await FirebaseFirestore.instance.collection('trainer').get();
+    setState(() => trainers = snap.docs);
   }
 
   /// 🔹 Pick Date
@@ -78,91 +58,7 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
     }
   }
 
-  /// 🔹 Check if today is within batch dates
-  bool isWithinBatchDates() {
-    if (startDateCtrl.text.isEmpty || endDateCtrl.text.isEmpty) return false;
-    try {
-      DateTime now = DateTime.now();
-      DateTime start = DateTime.parse(startDateCtrl.text);
-      DateTime end = DateTime.parse(endDateCtrl.text);
-      return now.isAfter(start.subtract(const Duration(days: 1))) &&
-          now.isBefore(end.add(const Duration(days: 1)));
-    } catch (e) {
-      print("Date parse error: $e");
-      return false;
-    }
-  }
-
-  /// 🔹 Generate and store today's QR in Firestore
-  // Future<void> storeTodayQR(String batchId) async {
-  //   final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-  //   final qrValue = "${batchNoCtrl.text.trim()}_$today";
-
-  //   try {
-  //     final qrRef = FirebaseFirestore.instance
-  //         .collection('batches')
-  //         .doc(batchId)
-  //         .collection('daily_qr')
-  //         .doc(today);
-
-  //     final snap = await qrRef.get();
-  //     if (!snap.exists) {
-  //       await qrRef.set({
-  //         'qr_value': qrValue,
-  //         'date': today,
-  //         'created_at': FieldValue.serverTimestamp(),
-  //       });
-  //       print("✅ QR stored: $qrValue");
-  //     } else {
-  //       print("ℹ️ QR already exists for today: $qrValue");
-  //     }
-
-  //     setState(() {
-  //       todayQr = qrValue;
-  //     });
-  //   } catch (e) {
-  //     print("❌ Error storing QR: $e");
-  //   }
-  // }
-
-  Future<void> storeTodayQR(String batchId) async {
-  final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-  // ✅ QR now contains batchId
-  final qrValue =
-      "$batchId|${batchNoCtrl.text.trim()}|$today";
-
-  try {
-    final qrRef = FirebaseFirestore.instance
-        .collection('batches')
-        .doc(batchId)
-        .collection('daily_qr')
-        .doc(today);
-
-    final snap = await qrRef.get();
-
-    if (!snap.exists) {
-      await qrRef.set({
-        'qr_value': qrValue,
-        'batch_id': batchId, // ✅ VERY IMPORTANT
-        'batch_no': batchNoCtrl.text.trim(),
-        'date': today,
-        'created_at': FieldValue.serverTimestamp(),
-      });
-
-      print("✅ QR stored: $qrValue");
-    }
-
-    setState(() {
-      todayQr = qrValue;
-    });
-  } catch (e) {
-    print("❌ Error storing QR: $e");
-  }
-}
-
-
-  /// 🔹 Create Batch
+  /// 🔹 CREATE BATCH + FIXED QR (ONCE)
   Future<void> createBatch() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -176,11 +72,13 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
     setState(() => loading = true);
 
     try {
-      String uniqueId =
-          FirebaseFirestore.instance.collection('batches').doc().id;
+      final docRef =
+          FirebaseFirestore.instance.collection('batches').doc();
 
-      await FirebaseFirestore.instance.collection('batches').doc(uniqueId).set({
-        'batch_id': uniqueId,
+      final qrValue = "${docRef.id}|${batchNoCtrl.text.trim()}";
+
+      await docRef.set({
+        'batch_id': docRef.id,
         'batch_no': batchNoCtrl.text.trim(),
         'college_name': collegeCtrl.text.trim(),
         'stream': streamCtrl.text.trim(),
@@ -190,26 +88,21 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
         'trainer_name': selectedTrainerName,
         'start_date': startDateCtrl.text.trim(),
         'end_date': endDateCtrl.text.trim(),
+        'fixed_qr': qrValue,
         'created_at': Timestamp.now(),
       });
 
-      print("✅ Batch created: $uniqueId");
-
       setState(() {
         loading = false;
-        batchId = uniqueId;
+        batchId = docRef.id;
+        fixedQr = qrValue;
       });
-
-      if (isWithinBatchDates()) {
-        await storeTodayQR(uniqueId);
-      }
     } catch (e) {
       setState(() => loading = false);
-      print("❌ Error creating batch: $e");
     }
   }
 
-  /// 🔹 Gradient Outline Text Field
+  /// 🔹 Gradient TextField
   Widget gradientField({
     required String hint,
     required TextEditingController controller,
@@ -244,7 +137,7 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
     );
   }
 
-  /// 🔹 Gradient Outline Dropdown
+  /// 🔹 Gradient Dropdown
   Widget gradientDropdown({
     required String hint,
     required String? value,
@@ -278,61 +171,68 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        automaticallyImplyLeading: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.transparent,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xff3f5efb), Color(0xfffc466b)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+    return  Scaffold(
+  backgroundColor: Colors.white,
+  appBar: AppBar(
+    elevation: 0,
+
+    /// ✅ SHOW BACK ARROW
+    automaticallyImplyLeading: true,
+
+    /// ✅ BACK ARROW COLOR WHITE
+    iconTheme: const IconThemeData(color: Colors.white),
+
+    backgroundColor: Colors.transparent,
+    flexibleSpace: Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xff3f5efb), Color(0xfffc466b)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+    ),
+
+    actions: [
+      Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: CircleAvatar(
+          radius: 22,
+          backgroundColor: Colors.white,
+          child: ClipOval(
+            child: Image.asset(
+              "assets/logo.png",
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
             ),
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              radius: 22,
-              backgroundColor: Colors.white,
-              child: ClipOval(
-                child: Image.asset(
-                  "assets/logo.png",
-                  width: 36,
-                  height: 36,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
+    ],
+  ),
+
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-
                Center(
-                    child: ShaderMask(
-                      shaderCallback: (bounds) => redGradient.createShader(bounds),
-                      child: const Text(
-                        "Create Batch",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white, // overridden by ShaderMask
-                        ),
-                      ),
+                 child: ShaderMask(
+                  shaderCallback: (bounds) => redGradient.createShader(bounds),
+                  child: const Text(
+                    "Create Batch",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                               ),
+               ),
+              const SizedBox(height: 30),
               gradientField(
                 hint: "Batch Number",
                 controller: batchNoCtrl,
@@ -373,7 +273,7 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
                 value: selectedTrainerId,
                 items: trainers.map((t) {
                   return DropdownMenuItem<String>(
-                    value: t['trainer_id'].toString(),
+                    value: t['trainer_id'],
                     child: Text(t['name']),
                   );
                 }).toList(),
@@ -431,27 +331,18 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
 
               const SizedBox(height: 30),
 
-              if (batchId != null &&
-                  todayQr != null &&
-                  startDateCtrl.text.isNotEmpty &&
-                  endDateCtrl.text.isNotEmpty &&
-                  isWithinBatchDates())
+              if (fixedQr != null)
                 Column(
                   children: [
                     const Text(
-                      "Today's Attendance QR",
+                      "Batch Attendance QR",
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     QrImageView(
-                      data: todayQr!,
+                      data: fixedQr!,
                       size: 220,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      DateFormat('dd MMM yyyy').format(DateTime.now()),
-                      style: const TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
