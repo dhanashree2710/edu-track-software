@@ -1,6 +1,8 @@
 
 import 'package:edutrack_application/modules/Assessment/presentation/views/add_assessment.dart';
 import 'package:edutrack_application/modules/Assessment/presentation/views/view_assessment_batch.dart';
+import 'package:edutrack_application/modules/Assessment/presentation/views/view_created_assessment.dart';
+import 'package:edutrack_application/utils/common/user_session.dart';
 import 'package:flutter/material.dart';
 
 class ManageAssessmentScreen extends StatelessWidget {
@@ -67,8 +69,21 @@ class ManageAssessmentScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _actionButton(
-              title: "View Assessments",
+              title: "View Assessments ",
               icon: Icons.list_alt_rounded,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>ViewCreatedAssessment(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            _actionButton(
+              title: "Assessments Result",
+              icon: Icons.output,
               onTap: () {
                 Navigator.push(
                   context,

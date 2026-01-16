@@ -123,7 +123,27 @@ class _StudentListScreenState extends State<StudentListScreen> {
             return const Center(child: Text("No students found"));
           }
 
-          final docs = snapshot.data!.docs;
+         // final docs = snapshot.data!.docs;
+final docs = snapshot.data!.docs.toList();
+
+docs.sort((a, b) {
+  final rollA = (a['roll_no'] ?? '').toString();
+  final rollB = (b['roll_no'] ?? '').toString();
+
+  // Extract numeric part safely (BG0110 → 110)
+  final numA =
+      int.tryParse(RegExp(r'\d+').firstMatch(rollA)?.group(0) ?? '0') ?? 0;
+  final numB =
+      int.tryParse(RegExp(r'\d+').firstMatch(rollB)?.group(0) ?? '0') ?? 0;
+
+  // Primary sort → numeric
+  if (numA != numB) {
+    return numA.compareTo(numB);
+  }
+
+  // Secondary fallback → string
+  return rollA.compareTo(rollB);
+});
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -275,7 +275,7 @@ class StudentAttendanceListScreen extends StatelessWidget {
 
     // CSV headers
     List<List<String>> csvData = [
-      ["Date", "Roll No", "Student Name", "In Time", "Out Time", "Verified By"]
+      ["Date", "Roll No", "Student Name", "In Time", "Out Time", "Verified By"],
     ];
 
     // CSV rows
@@ -287,7 +287,7 @@ class StudentAttendanceListScreen extends StatelessWidget {
         item['studentName'] ?? '',
         formatTime(attendance['in_time']),
         formatTime(attendance['out_time']),
-        attendance['verified_by'] ?? ''
+        attendance['verified_by'] ?? '',
       ]);
     }
 
@@ -342,7 +342,11 @@ class StudentAttendanceListScreen extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.download, color: Colors.black, size: 28),
+                  icon: const Icon(
+                    Icons.download,
+                    color: Colors.black,
+                    size: 28,
+                  ),
                   onPressed: () async {
                     try {
                       final snapshot = await FirebaseFirestore.instance
@@ -352,32 +356,38 @@ class StudentAttendanceListScreen extends StatelessWidget {
 
                       if (snapshot.docs.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("No attendance records to download")),
+                          const SnackBar(
+                            content: Text("No attendance records to download"),
+                          ),
                         );
                         return;
                       }
 
                       // Fetch student names
-                      final attendanceList = await Future.wait(snapshot.docs.map((doc) async {
-                        final data = doc.data() as Map<String, dynamic>;
-                        final rollNo = data['student_id'] ?? '';
-                        final studentName = await getStudentName(rollNo);
-                        return {
-                          'attendance': data,
-                          'rollNo': rollNo,
-                          'studentName': studentName,
-                        };
-                      }));
+                      final attendanceList = await Future.wait(
+                        snapshot.docs.map((doc) async {
+                          final data = doc.data() as Map<String, dynamic>;
+                          final rollNo = data['student_id'] ?? '';
+                          final studentName = await getStudentName(rollNo);
+                          return {
+                            'attendance': data,
+                            'rollNo': rollNo,
+                            'studentName': studentName,
+                          };
+                        }),
+                      );
 
                       await downloadCSV(attendanceList);
 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Attendance downloaded successfully")),
+                        const SnackBar(
+                          content: Text("Attendance downloaded successfully"),
+                        ),
                       );
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Error: $e")),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text("Error: $e")));
                     }
                   },
                 ),
@@ -388,30 +398,41 @@ class StudentAttendanceListScreen extends StatelessWidget {
           // Attendance list
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('attendance').snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('attendance')
+                  .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData)
+                  return const Center(child: CircularProgressIndicator());
 
                 final records = snapshot.data!.docs.where((doc) {
                   final data = doc.data() as Map<String, dynamic>;
                   return data['batch_id'] == batchId;
                 }).toList();
 
-                if (records.isEmpty) return const Center(child: Text("No attendance records found"));
+
+                if (records.isEmpty)
+                  return const Center(
+                    child: Text("No attendance records found"),
+                  );
 
                 return FutureBuilder<List<Map<String, dynamic>>>(
-                  future: Future.wait(records.map((record) async {
-                    final data = record.data() as Map<String, dynamic>;
-                    final rollNo = data['student_id'] ?? '';
-                    final studentName = await getStudentName(rollNo);
-                    return {
-                      'attendance': data,
-                      'rollNo': rollNo,
-                      'studentName': studentName,
-                    };
-                  })),
+                  future: Future.wait(
+                    records.map((record) async {
+                      final data = record.data() as Map<String, dynamic>;
+                      final rollNo = data['student_id'] ?? '';
+                      final studentName = await getStudentName(rollNo);
+                      return {
+                        'attendance': data,
+                        'rollNo': rollNo,
+                        'studentName': studentName,
+                        'docId': record.id, // ✅ ADD THIS
+                      };
+                    }),
+                  ),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                    if (!snapshot.hasData)
+                      return const Center(child: CircularProgressIndicator());
                     final list = snapshot.data!;
 
                     // Group by date
@@ -420,6 +441,30 @@ class StudentAttendanceListScreen extends StatelessWidget {
                       final date = item['attendance']['date'] ?? 'Unknown';
                       grouped.putIfAbsent(date, () => []).add(item);
                     }
+
+// ✅ SORT EACH DATE GROUP BY ROLL NO (ASCENDING)
+grouped.forEach((date, items) {
+  items.sort((a, b) {
+    final rollA = a['rollNo']?.toString() ?? '';
+    final rollB = b['rollNo']?.toString() ?? '';
+
+    // Extract numbers from rollNo (e.g. BG0110 -> 110)
+    final numA =
+        int.tryParse(RegExp(r'\d+').firstMatch(rollA)?.group(0) ?? '0') ?? 0;
+    final numB =
+        int.tryParse(RegExp(r'\d+').firstMatch(rollB)?.group(0) ?? '0') ?? 0;
+
+    // If numeric part differs → sort by number
+    if (numA != numB) {
+      return numA.compareTo(numB);
+    }
+
+    // Otherwise → fallback to string sort
+    return rollA.compareTo(rollB);
+  });
+});
+
+
 
                     return ListView(
                       children: grouped.entries.map((entry) {
@@ -432,19 +477,24 @@ class StudentAttendanceListScreen extends StatelessWidget {
                             margin: const EdgeInsets.symmetric(horizontal: 16),
                             elevation: 3,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: ExpansionTile(
                               initiallyExpanded: true,
                               title: Text(
                                 "Date: $date",
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 18),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
                               ),
                               children: [
                                 SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
                                   child: DataTable(
-                                    headingRowColor: MaterialStateProperty.all(Colors.blue.shade100),
+                                    headingRowColor: MaterialStateProperty.all(
+                                      Colors.blue.shade100,
+                                    ),
                                     columns: const [
                                       DataColumn(label: Text("Sr No")),
                                       DataColumn(label: Text("Roll No")),
@@ -452,18 +502,100 @@ class StudentAttendanceListScreen extends StatelessWidget {
                                       DataColumn(label: Text("In Time")),
                                       DataColumn(label: Text("Out Time")),
                                       DataColumn(label: Text("Verified")),
+                                      DataColumn(label: Text("Delete")),
                                     ],
                                     rows: List.generate(items.length, (index) {
                                       final row = items[index];
-                                      final attendance = row['attendance'] as Map<String, dynamic>;
-                                      return DataRow(cells: [
-                                        DataCell(Text("${index + 1}")),
-                                        DataCell(Text(row['rollNo'] ?? '')),
-                                        DataCell(Text(row['studentName'] ?? '')),
-                                        DataCell(Text(formatTime(attendance['in_time']))),
-                                        DataCell(Text(formatTime(attendance['out_time']))),
-                                        DataCell(Text(attendance['verified_by'] ?? '')),
-                                      ]);
+                                      final attendance =
+                                          row['attendance']
+                                              as Map<String, dynamic>;
+
+                                      return DataRow(
+                                        cells: [
+                                          DataCell(Text("${index + 1}")),
+                                          DataCell(Text(row['rollNo'] ?? '')),
+                                          DataCell(
+                                            Text(row['studentName'] ?? ''),
+                                          ),
+                                          DataCell(
+                                            Text(
+                                              formatTime(attendance['in_time']),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            Text(
+                                              formatTime(
+                                                attendance['out_time'],
+                                              ),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            Text(
+                                              attendance['verified_by'] ?? '',
+                                            ),
+                                          ),
+
+                                          // 🗑 DELETE ICON (ONLY ADDITION)
+                                          DataCell(
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
+                                              ),
+                                              onPressed: () async {
+                                                final confirm = await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (ctx) => AlertDialog(
+                                                    title: const Text(
+                                                      "Delete Attendance",
+                                                    ),
+                                                    content: const Text(
+                                                      "Are you sure you want to delete this attendance record?",
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                              ctx,
+                                                              false,
+                                                            ),
+                                                        child: const Text(
+                                                          "Cancel",
+                                                        ),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                              ctx,
+                                                              true,
+                                                            ),
+                                                        style:
+                                                            ElevatedButton.styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                            ),
+                                                        child: const Text(
+                                                          "Delete",
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+
+                                                if (confirm == true) {
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('attendance')
+                                                      .doc(
+                                                        row['docId'],
+                                                      ) // ✅ CORRECT
+                                                      .delete();
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      );
                                     }),
                                   ),
                                 ),

@@ -10,6 +10,7 @@ class EditBatchScreen extends StatefulWidget {
 
 class _EditBatchScreenState extends State<EditBatchScreen> {
   String? editingBatchId;
+ String? editingBatchNo;
 
   final collegeCtrl = TextEditingController();
   final streamCtrl = TextEditingController();
@@ -26,6 +27,7 @@ class _EditBatchScreenState extends State<EditBatchScreen> {
       streamCtrl.text = data['stream'];
       courseCtrl.text = data['course_name'];
       locationCtrl.text = data['location'];
+      editingBatchNo = data['batch_no'];
       startCtrl.text = data['start_date'];
       endCtrl.text = data['end_date'];
     });
@@ -41,6 +43,7 @@ class _EditBatchScreenState extends State<EditBatchScreen> {
       'stream': streamCtrl.text.trim(),
       'course_name': courseCtrl.text.trim(),
       'location': locationCtrl.text.trim(),
+      'batch_no': editingBatchNo.toString().trim(),
       'start_date': startCtrl.text.trim(),
       'end_date': endCtrl.text.trim(),
     });
@@ -146,6 +149,7 @@ class _EditBatchScreenState extends State<EditBatchScreen> {
                     DataColumn(label: Text("Stream")),
                     DataColumn(label: Text("Course")),
                     DataColumn(label: Text("Location")),
+                     DataColumn(label: Text("Batch")),
                     DataColumn(label: Text("Start Date")),
                     DataColumn(label: Text("End Date")),
                     DataColumn(label: Text("Actions")),
@@ -174,6 +178,10 @@ class _EditBatchScreenState extends State<EditBatchScreen> {
                         DataCell(isEditing
                             ? TextField(controller: locationCtrl)
                             : Text(data['location'])),
+                        
+                        DataCell(isEditing
+                            ? TextField(controller: locationCtrl)
+                            : Text(data['batch_no'])),
 
                         DataCell(isEditing
                             ? TextField(controller: startCtrl)

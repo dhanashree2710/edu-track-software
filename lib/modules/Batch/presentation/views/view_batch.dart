@@ -193,13 +193,13 @@ class BatchesByCollegeScreen extends StatelessWidget {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     title: Text(
                       "${batch['stream']} - ${batch['course_name']}",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
-                        batch['location'] ?? '',
-                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                        batch['batch_no'] ?? '',
+                        style: TextStyle(fontSize: 16, color: const Color.fromARGB(255, 22, 22, 22)),
                       ),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),

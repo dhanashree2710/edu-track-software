@@ -93,7 +93,7 @@ class _BatchDetailsScreenState extends State<BatchDetailsScreen> {
       await Share.shareXFiles(
         [XFile(file.path)],
         text:
-            "Batch QR Code\nCollege: ${widget.batchData['college_name']}\nCourse: ${widget.batchData['course_name']}\nDate: ${DateFormat('dd MMM yyyy').format(selectedDate)}",
+            "Batch ${widget.batchData['batch_no']} QR Code\nCollege: ${widget.batchData['college_name']}\nCourse: ${widget.batchData['course_name']}\nDate: ${DateFormat('dd MMM yyyy').format(selectedDate)}",
       );
     } catch (e) {
       ScaffoldMessenger.of(context)
@@ -194,7 +194,7 @@ class _BatchDetailsScreenState extends State<BatchDetailsScreen> {
             ),
 
             const SizedBox(height: 16),
-
+            _info("Batch", data['batch_no']),
             _info("Course", data['course_name']),
             _info("Stream", data['stream']),
             _info("Location", data['location']),
