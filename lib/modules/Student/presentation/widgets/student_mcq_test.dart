@@ -5,11 +5,13 @@ import 'package:edutrack_application/utils/common/pop_up_screen.dart';
 class StudentTestScreen extends StatefulWidget {
   final String rollNo;
   final String assessmentId;
+  final String batchName;
+
 
   const StudentTestScreen({
     super.key,
     required this.rollNo,
-    required this.assessmentId,
+    required this.assessmentId, required this.batchName,
   });
 
   @override

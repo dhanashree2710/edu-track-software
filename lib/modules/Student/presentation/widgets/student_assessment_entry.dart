@@ -14,76 +14,97 @@ class _StudentRollEntryScreenState extends State<StudentRollEntryScreen> {
   final rollCtrl = TextEditingController();
   bool loading = false;
 
-  Future<void> startTest() async {
-    setState(() => loading = true);
+Future<void> startTest() async {
+  setState(() => loading = true);
 
-    final studentSnap = await FirebaseFirestore.instance
-        .collection('student')
-        .where('roll_no', isEqualTo: rollCtrl.text.trim())
-        .get();
+  final rollNo = rollCtrl.text.trim();
 
-    if (studentSnap.docs.isEmpty) {
-      setState(() => loading = false);
-      showCustomAlert(
-        context,
-        isSuccess: false,
-        title: "Invalid Roll No",
-        description: "Student not found",
-      );
-      return;
-    }
-
-    final student = studentSnap.docs.first.data();
-    final batchId = student['batch_id'];
-
-    final assessmentSnap = await FirebaseFirestore.instance
-        .collection('assessments')
-        .where('batchId', isEqualTo: batchId)
-        .limit(1)
-        .get();
-
-    if (assessmentSnap.docs.isEmpty) {
-      setState(() => loading = false);
-      showCustomAlert(
-        context,
-        isSuccess: false,
-        title: "No Test",
-        description: "No assessment available",
-      );
-      return;
-    }
-
-    final assessmentId = assessmentSnap.docs.first.id;
-
-    final attemptCheck = await FirebaseFirestore.instance
-        .collection('assessment_results')
-        .where('roll_no', isEqualTo: rollCtrl.text.trim())
-        .where('assessment_id', isEqualTo: assessmentId)
-        .get();
-
-    if (attemptCheck.docs.isNotEmpty) {
-      setState(() => loading = false);
-      showCustomAlert(
-        context,
-        isSuccess: false,
-        title: "Already Attempted",
-        description: "You can attempt this test only once",
-      );
-      return;
-    }
-
+  if (rollNo.length < 4) {
     setState(() => loading = false);
-
-    Navigator.push(
+    showCustomAlert(
       context,
-      MaterialPageRoute(
-        builder: (_) => StudentTestScreen(
-          rollNo: rollCtrl.text.trim(),
-          assessmentId: assessmentId,
-        ),
-      ),
+      isSuccess: false,
+      title: "Invalid Roll No",
+      description: "Enter valid roll number",
     );
+    return;
   }
+
+  /// Extract batch from roll number
+  final batchCode = rollNo.substring(0, 4); // BG01
+  final batchId = "BFSI - $batchCode";
+  
+
+  /// Check student exists
+  final studentSnap = await FirebaseFirestore.instance
+      .collection('student')
+      .where('roll_no', isEqualTo: rollNo)
+      .limit(1)
+      .get();
+
+  if (studentSnap.docs.isEmpty) {
+    setState(() => loading = false);
+    showCustomAlert(
+      context,
+      isSuccess: false,
+      title: "Invalid Roll No",
+      description: "Student not found",
+    );
+    return;
+  }
+
+  /// Fetch assessment using batchId
+  final assessmentSnap = await FirebaseFirestore.instance
+      .collection('assessments')
+      .where('batchId', isEqualTo: batchId)
+      .limit(1)
+      .get();
+
+  if (assessmentSnap.docs.isEmpty) {
+    setState(() => loading = false);
+    showCustomAlert(
+      context,
+      isSuccess: false,
+      title: "No Test",
+      description: "No assessment available for this batch",
+    );
+    return;
+  }
+
+  final assessmentId = assessmentSnap.docs.first.id;
+
+  /// Prevent multiple attempts
+  final attemptCheck = await FirebaseFirestore.instance
+      .collection('assessment_results')
+      .where('roll_no', isEqualTo: rollNo)
+      .where('assessment_id', isEqualTo: assessmentId)
+      .get();
+
+  if (attemptCheck.docs.isNotEmpty) {
+    setState(() => loading = false);
+    showCustomAlert(
+      context,
+      isSuccess: false,
+      title: "Already Attempted",
+      description: "You can attempt this test only once",
+    );
+    return;
+  }
+
+  setState(() => loading = false);
+
+ Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => StudentTestScreen(
+      rollNo: rollNo,
+      assessmentId: assessmentId,
+      batchName: batchId,
+    ),
+  ),
+);
+
+}
 
   @override
   Widget build(BuildContext context) {
