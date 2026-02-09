@@ -171,41 +171,76 @@ Future<void> deleteResult(BuildContext context, String docId) async {
         //     .collection('assessment_results')
         //     .where('assessment_id', isEqualTo: assessmentId)
         //     .snapshots(),
-            stream: FirebaseFirestore.instance
+//             stream: FirebaseFirestore.instance
+//     .collection('assessment_results')
+//     .where('assessment_id', isEqualTo: assessmentId)
+//     .where('batch_name', isGreaterThanOrEqualTo: 'BFSI - $batchPrefix')
+//     .where('batch_name', isLessThan: 'BFSI - $batchPrefix\uf8ff')
+//     .snapshots(),
+//         builder: (_, snapshot) {
+//           if (!snapshot.hasData) {
+//             return const Center(child: CircularProgressIndicator());
+//           }
+
+//           final docs = snapshot.data!.docs;
+//           if (docs.isEmpty) {
+//             return const Center(child: Text("No results found"));
+//           }
+// print("assessmentId = $assessmentId");
+// print("batchName = $batchName");
+
+//        /// 🔹 Deduplicate by roll_no + keep docId
+// final Map<String, Map<String, dynamic>> unique = {};
+
+// for (var doc in docs) {
+//   final data = doc.data() as Map<String, dynamic>;
+
+//   final rollNo = data['roll_no']?.toString() ?? '';
+//   data['docId'] = doc.id; // store document id safely
+
+//   if (rollNo.isNotEmpty) {
+//     unique.putIfAbsent(rollNo, () => data);
+//   }
+// }
+
+
+//           /// 🔹 Sort
+//           final studentList = unique.values.toList()..sort(rollSort);
+stream: FirebaseFirestore.instance
     .collection('assessment_results')
     .where('assessment_id', isEqualTo: assessmentId)
-    .where('batch_name', isGreaterThanOrEqualTo: 'BFSI - $batchPrefix')
-    .where('batch_name', isLessThan: 'BFSI - $batchPrefix\uf8ff')
     .snapshots(),
-        builder: (_, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final docs = snapshot.data!.docs;
-          if (docs.isEmpty) {
-            return const Center(child: Text("No results found"));
-          }
-print("assessmentId = $assessmentId");
-print("batchName = $batchName");
-
-       /// 🔹 Deduplicate by roll_no + keep docId
-final Map<String, Map<String, dynamic>> unique = {};
-
-for (var doc in docs) {
-  final data = doc.data() as Map<String, dynamic>;
-
-  final rollNo = data['roll_no']?.toString() ?? '';
-  data['docId'] = doc.id; // store document id safely
-
-  if (rollNo.isNotEmpty) {
-    unique.putIfAbsent(rollNo, () => data);
+builder: (_, snapshot) {
+  if (!snapshot.hasData) {
+    return const Center(child: CircularProgressIndicator());
   }
-}
+
+  // Filter client-side by batch code (e.g., "BG01")
+final docs = snapshot.data!.docs.where((doc) {
+  final data = doc.data() as Map<String, dynamic>;
+  final batch = data['batch_name']?.toString() ?? '';
+  return batch.contains(batchName);
+}).toList();
 
 
-          /// 🔹 Sort
-          final studentList = unique.values.toList()..sort(rollSort);
+  if (docs.isEmpty) {
+    return const Center(child: Text("No results found"));
+  }
+
+  /// 🔹 Deduplicate by roll_no + keep docId
+  final Map<String, Map<String, dynamic>> unique = {};
+  for (var doc in docs) {
+    final data = doc.data() as Map<String, dynamic>;
+    final rollNo = data['roll_no']?.toString() ?? '';
+    data['docId'] = doc.id; // store document id safely
+    if (rollNo.isNotEmpty) {
+      unique.putIfAbsent(rollNo, () => data);
+    }
+  }
+
+  final studentList = unique.values.toList()..sort(rollSort);
+
+
 
           return Column(
             children: [
