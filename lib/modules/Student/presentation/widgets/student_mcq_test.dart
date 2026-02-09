@@ -20,6 +20,29 @@ class _StudentTestScreenState extends State<StudentTestScreen> {
   Map<int, String> answers = {};
   bool submitting = false;
 
+String? batchName;
+
+@override
+void initState() {
+  super.initState();
+  fetchStudentData(); // load batch name when screen opens
+}
+
+Future<void> fetchStudentData() async {
+  final snapshot = await FirebaseFirestore.instance
+      .collection('student')
+      .where('roll_no', isEqualTo: widget.rollNo)
+      .limit(1)
+      .get();
+
+  if (snapshot.docs.isNotEmpty) {
+    setState(() {
+      batchName = snapshot.docs.first.data()['batch_name']?.toString() ?? '';
+    });
+  }
+}
+
+
   /// SUBMIT TEST
   Future<void> submitTest(List questions) async {
     int correct = 0;
@@ -30,15 +53,18 @@ class _StudentTestScreenState extends State<StudentTestScreen> {
       }
     }
 
-    await FirebaseFirestore.instance.collection('assessment_results').add({
-      'roll_no': widget.rollNo,
-      'assessment_id': widget.assessmentId,
-      'correct': correct,
-      'wrong': questions.length - correct,
-      'total': questions.length,
-      'score': "$correct / ${questions.length}",
-      'submitted_at': Timestamp.now(),
-    });
+   await FirebaseFirestore.instance.collection('assessment_results').add({
+  'roll_no': widget.rollNo,
+  'assessment_id': widget.assessmentId,
+  'batch_name': batchName ?? '',   // FIXED
+  'correct': correct,
+  'wrong': questions.length - correct,
+  'total': questions.length,
+  'score': "$correct / ${questions.length}",
+  'submitted_at': Timestamp.now(),
+});
+
+
 
     showCustomAlert(
       context,
@@ -116,7 +142,20 @@ class _StudentTestScreenState extends State<StudentTestScreen> {
                 return gradientButton(
                   text: "Submit Test",
                   loading: submitting,
-                  onTap: () => submitTest(questions),
+              onTap: () {
+  if (batchName == null || batchName!.isEmpty) {
+    showCustomAlert(
+      context,
+      isSuccess: false,
+      title: "Please wait",
+      description: "Student data is still loading",
+    );
+    return;
+  }
+
+  submitTest(questions);
+},
+
                 );
               }
 
