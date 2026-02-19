@@ -30,11 +30,6 @@ Future<void> startTest() async {
     return;
   }
 
-  /// Extract batch from roll number
-  final batchCode = rollNo.substring(0, 4); // BG01
-  final batchId = "BFSI - $batchCode";
-  
-
   /// Check student exists
   final studentSnap = await FirebaseFirestore.instance
       .collection('student')
@@ -53,7 +48,22 @@ Future<void> startTest() async {
     return;
   }
 
-  /// Fetch assessment using batchId
+  /// Get batch from student document
+  final studentData = studentSnap.docs.first.data();
+  final batchId = studentData['batch_name'];
+
+  if (batchId == null || batchId.toString().isEmpty) {
+    setState(() => loading = false);
+    showCustomAlert(
+      context,
+      isSuccess: false,
+      title: "Batch Not Found",
+      description: "Student batch is not assigned",
+    );
+    return;
+  }
+
+  /// Fetch assessment using batch_name
   final assessmentSnap = await FirebaseFirestore.instance
       .collection('assessments')
       .where('batchId', isEqualTo: batchId)
@@ -93,17 +103,16 @@ Future<void> startTest() async {
 
   setState(() => loading = false);
 
- Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => StudentTestScreen(
-      rollNo: rollNo,
-      assessmentId: assessmentId,
-      batchName: batchId,
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => StudentTestScreen(
+        rollNo: rollNo,
+        assessmentId: assessmentId,
+        batchName: batchId,
+      ),
     ),
-  ),
-);
-
+  );
 }
 
   @override

@@ -24,19 +24,29 @@ class _StudentListScreenState extends State<StudentListScreen> {
   final rollCtrl = TextEditingController();
   final passwordCtrl = TextEditingController();
   final classCtrl = TextEditingController();
+  final collegeCtrl = TextEditingController();
+final streamCtrl = TextEditingController();
+final courseCtrl = TextEditingController();
+final batchCtrl = TextEditingController();
+
 
   /// ▶ Start Edit
   void startEdit(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
     setState(() {
-      editingStudentId = doc.id;
-      nameCtrl.text = data['name'] ?? '';
-      emailCtrl.text = data['email'] ?? '';
-      phoneCtrl.text = data['phone'] ?? '';
-      rollCtrl.text = data['roll_no'] ?? '';
-      passwordCtrl.text = data['password'] ?? '';
-      classCtrl.text = data['class'] ?? '';
+     editingStudentId = doc.id;
+    nameCtrl.text = data['name'] ?? '';
+    emailCtrl.text = data['email'] ?? '';
+    phoneCtrl.text = data['phone'] ?? '';
+    rollCtrl.text = data['roll_no'] ?? '';
+    passwordCtrl.text = data['password'] ?? '';
+    classCtrl.text = data['class'] ?? '';
+
+    collegeCtrl.text = data['college_name'] ?? '';
+    streamCtrl.text = data['stream'] ?? '';
+    courseCtrl.text = data['course_name'] ?? '';
+    batchCtrl.text = data['batch_name'] ?? '';
     });
   }
 
@@ -46,12 +56,17 @@ class _StudentListScreenState extends State<StudentListScreen> {
         .collection('student')
         .doc(docId)
         .update({
-      'name': nameCtrl.text.trim(),
-      'email': emailCtrl.text.trim(),
-      'phone': phoneCtrl.text.trim(),
-      'roll_no': rollCtrl.text.trim(),
-      'password': passwordCtrl.text.trim(),
-      'class': classCtrl.text.trim(),
+        'name': nameCtrl.text.trim(),
+    'email': emailCtrl.text.trim(),
+    'phone': phoneCtrl.text.trim(),
+    'roll_no': rollCtrl.text.trim(),
+    'password': passwordCtrl.text.trim(),
+    'class': classCtrl.text.trim(),
+
+    'college_name': collegeCtrl.text.trim(),
+    'stream': streamCtrl.text.trim(),
+    'course_name': courseCtrl.text.trim(),
+    'batch_name': batchCtrl.text.trim(),
     });
 
     setState(() => editingStudentId = null);
@@ -182,115 +197,99 @@ docs.sort((a, b) {
                         columnSpacing: 28,
                         headingRowColor:
                             WidgetStateProperty.all(Colors.blue.shade50),
-                        columns: const [
-                          DataColumn(label: Text("Sr.No")),
-                          DataColumn(label: Text("Name")),
-                          DataColumn(label: Text("Email")),
-                          DataColumn(label: Text("Phone")),
-                          DataColumn(label: Text("Roll No")),
-                          DataColumn(label: Text("Class")),
-                          DataColumn(label: Text("Password")),
-                          DataColumn(label: Text("Batch")),
-                          DataColumn(label: Text("Actions")),
-                        ],
+                       columns: const [
+  DataColumn(label: Text("Sr.No")),
+  DataColumn(label: Text("Name")),
+  DataColumn(label: Text("Email")),
+  DataColumn(label: Text("Phone")),
+  DataColumn(label: Text("Roll No")),
+  DataColumn(label: Text("Class")),
+  DataColumn(label: Text("College")),
+  DataColumn(label: Text("Stream")),
+  DataColumn(label: Text("Course")),
+  DataColumn(label: Text("Batch")),
+  DataColumn(label: Text("Password")),
+  DataColumn(label: Text("Actions")),
+],
+
                         rows: List.generate(docs.length, (index) {
                           final doc = docs[index];
                           final data = doc.data() as Map<String, dynamic>;
                           final isEditing = editingStudentId == doc.id;
 
                           return DataRow(
-                            cells: [
-                              DataCell(Text("${index + 1}")),
+  cells: [
+    DataCell(Text("${index + 1}")),
 
-                              DataCell(isEditing
-                                  ? TextField(controller: nameCtrl)
-                                  : Text(data['name'] ?? '')),
+    DataCell(isEditing
+        ? TextField(controller: nameCtrl)
+        : Text(data['name'] ?? '')),
 
-                              DataCell(isEditing
-                                  ? TextField(controller: emailCtrl)
-                                  : Text(data['email'] ?? '')),
+    DataCell(isEditing
+        ? TextField(controller: emailCtrl)
+        : Text(data['email'] ?? '')),
 
-                              DataCell(isEditing
-                                  ? TextField(controller: phoneCtrl)
-                                  : Text(data['phone'] ?? '')),
+    DataCell(isEditing
+        ? TextField(controller: phoneCtrl)
+        : Text(data['phone'] ?? '')),
 
-                              DataCell(isEditing
-                                  ? TextField(controller: rollCtrl)
-                                  : Text(data['roll_no'] ?? '')),
+    DataCell(isEditing
+        ? TextField(controller: rollCtrl)
+        : Text(data['roll_no'] ?? '')),
 
-                              DataCell(isEditing
-                                  ? TextField(controller: classCtrl)
-                                  : Text(data['class'] ?? '')),
+    DataCell(isEditing
+        ? TextField(controller: classCtrl)
+        : Text(data['class'] ?? '')),
 
-                              DataCell(isEditing
-                                  ? TextField(controller: passwordCtrl)
-                                  : Text(data['password'] ?? '')),
+    DataCell(isEditing
+        ? TextField(controller: passwordCtrl)
+        : Text(data['password'] ?? '')),
 
-                              DataCell(Text(data['batch_name'] ?? '')),
+    DataCell(isEditing
+        ? TextField(controller: collegeCtrl)
+        : Text(data['college_name'] ?? '')),
 
-                              /// ⚙ ACTIONS
-                              DataCell(
-                                Row(
-                                  children: [
-                                    if (isEditing) ...[
-                                      IconButton(
-                                        icon: const Icon(Icons.check,
-                                            color: Colors.green),
-                                        onPressed: () =>
-                                            updateStudent(doc.id),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.close,
-                                            color: Colors.grey),
-                                        onPressed: () =>
-                                            setState(() => editingStudentId = null),
-                                      ),
-                                    ] else ...[
-                                      IconButton(
-                                        icon: const Icon(Icons.edit,
-                                            color: Colors.blue),
-                                        onPressed: () => startEdit(doc),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete,
-                                            color: Colors.red),
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (_) => AlertDialog(
-                                              title:
-                                                  const Text("Delete Student"),
-                                              content: const Text(
-                                                  "Are you sure you want to delete this student?"),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(context),
-                                                  child:
-                                                      const Text("Cancel"),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    deleteStudent(doc.id);
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text(
-                                                    "Delete",
-                                                    style: TextStyle(
-                                                        color: Colors.red),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ],
-                          );
+    DataCell(isEditing
+        ? TextField(controller: streamCtrl)
+        : Text(data['stream'] ?? '')),
+
+    DataCell(isEditing
+        ? TextField(controller: courseCtrl)
+        : Text(data['course_name'] ?? '')),
+
+    DataCell(isEditing
+        ? TextField(controller: batchCtrl)
+        : Text(data['batch_name'] ?? '')),
+
+    DataCell(
+      Row(
+        children: [
+          if (isEditing) ...[
+            IconButton(
+              icon: const Icon(Icons.check, color: Colors.green),
+              onPressed: () => updateStudent(doc.id),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.grey),
+              onPressed: () =>
+                  setState(() => editingStudentId = null),
+            ),
+          ] else ...[
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.blue),
+              onPressed: () => startEdit(doc),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => deleteStudent(doc.id),
+            ),
+          ],
+        ],
+      ),
+    ),
+  ],
+);
+
                         }),
                       ),
                     ),
