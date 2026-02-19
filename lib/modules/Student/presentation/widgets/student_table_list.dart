@@ -25,48 +25,44 @@ class _StudentListScreenState extends State<StudentListScreen> {
   final passwordCtrl = TextEditingController();
   final classCtrl = TextEditingController();
   final collegeCtrl = TextEditingController();
-final streamCtrl = TextEditingController();
-final courseCtrl = TextEditingController();
-final batchCtrl = TextEditingController();
-
+  final streamCtrl = TextEditingController();
+  final courseCtrl = TextEditingController();
+  final batchCtrl = TextEditingController();
 
   /// ▶ Start Edit
   void startEdit(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
     setState(() {
-     editingStudentId = doc.id;
-    nameCtrl.text = data['name'] ?? '';
-    emailCtrl.text = data['email'] ?? '';
-    phoneCtrl.text = data['phone'] ?? '';
-    rollCtrl.text = data['roll_no'] ?? '';
-    passwordCtrl.text = data['password'] ?? '';
-    classCtrl.text = data['class'] ?? '';
+      editingStudentId = doc.id;
+      nameCtrl.text = data['name'] ?? '';
+      emailCtrl.text = data['email'] ?? '';
+      phoneCtrl.text = data['phone'] ?? '';
+      rollCtrl.text = data['roll_no'] ?? '';
+      passwordCtrl.text = data['password'] ?? '';
+      classCtrl.text = data['class'] ?? '';
 
-    collegeCtrl.text = data['college_name'] ?? '';
-    streamCtrl.text = data['stream'] ?? '';
-    courseCtrl.text = data['course_name'] ?? '';
-    batchCtrl.text = data['batch_name'] ?? '';
+      collegeCtrl.text = data['college_name'] ?? '';
+      streamCtrl.text = data['stream'] ?? '';
+      courseCtrl.text = data['course_name'] ?? '';
+      batchCtrl.text = data['batch_name'] ?? '';
     });
   }
 
   /// ▶ Update Student
   Future<void> updateStudent(String docId) async {
-    await FirebaseFirestore.instance
-        .collection('student')
-        .doc(docId)
-        .update({
-        'name': nameCtrl.text.trim(),
-    'email': emailCtrl.text.trim(),
-    'phone': phoneCtrl.text.trim(),
-    'roll_no': rollCtrl.text.trim(),
-    'password': passwordCtrl.text.trim(),
-    'class': classCtrl.text.trim(),
+    await FirebaseFirestore.instance.collection('student').doc(docId).update({
+      'name': nameCtrl.text.trim(),
+      'email': emailCtrl.text.trim(),
+      'phone': phoneCtrl.text.trim(),
+      'roll_no': rollCtrl.text.trim(),
+      'password': passwordCtrl.text.trim(),
+      'class': classCtrl.text.trim(),
 
-    'college_name': collegeCtrl.text.trim(),
-    'stream': streamCtrl.text.trim(),
-    'course_name': courseCtrl.text.trim(),
-    'batch_name': batchCtrl.text.trim(),
+      'college_name': collegeCtrl.text.trim(),
+      'stream': streamCtrl.text.trim(),
+      'course_name': courseCtrl.text.trim(),
+      'batch_name': batchCtrl.text.trim(),
     });
 
     setState(() => editingStudentId = null);
@@ -74,10 +70,7 @@ final batchCtrl = TextEditingController();
 
   /// ▶ Delete Student
   Future<void> deleteStudent(String docId) async {
-    await FirebaseFirestore.instance
-        .collection('student')
-        .doc(docId)
-        .delete();
+    await FirebaseFirestore.instance.collection('student').doc(docId).delete();
   }
 
   @override
@@ -86,11 +79,11 @@ final batchCtrl = TextEditingController();
       backgroundColor: Colors.white,
 
       /// 🌈 APP BAR
-      appBar:  AppBar(
+      appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: true,
         iconTheme: const IconThemeData(color: Colors.white),
-         title: Text(
+        title: Text(
           "${widget.batchName}",
           style: const TextStyle(color: Colors.white),
         ),
@@ -138,52 +131,59 @@ final batchCtrl = TextEditingController();
             return const Center(child: Text("No students found"));
           }
 
-         // final docs = snapshot.data!.docs;
-final docs = snapshot.data!.docs.toList();
+          // final docs = snapshot.data!.docs;
+          final docs = snapshot.data!.docs.toList();
 
-docs.sort((a, b) {
-  final rollA = (a['roll_no'] ?? '').toString();
-  final rollB = (b['roll_no'] ?? '').toString();
+          docs.sort((a, b) {
+            final rollA = (a['roll_no'] ?? '').toString();
+            final rollB = (b['roll_no'] ?? '').toString();
 
-  // Extract numeric part safely (BG0110 → 110)
-  final numA =
-      int.tryParse(RegExp(r'\d+').firstMatch(rollA)?.group(0) ?? '0') ?? 0;
-  final numB =
-      int.tryParse(RegExp(r'\d+').firstMatch(rollB)?.group(0) ?? '0') ?? 0;
+            // Extract numeric part safely (BG0110 → 110)
+            final numA =
+                int.tryParse(
+                  RegExp(r'\d+').firstMatch(rollA)?.group(0) ?? '0',
+                ) ??
+                0;
+            final numB =
+                int.tryParse(
+                  RegExp(r'\d+').firstMatch(rollB)?.group(0) ?? '0',
+                ) ??
+                0;
 
-  // Primary sort → numeric
-  if (numA != numB) {
-    return numA.compareTo(numB);
-  }
+            // Primary sort → numeric
+            if (numA != numB) {
+              return numA.compareTo(numB);
+            }
 
-  // Secondary fallback → string
-  return rollA.compareTo(rollB);
-});
+            // Secondary fallback → string
+            return rollA.compareTo(rollB);
+          });
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               /// 🔹 TITLE
-                Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Color(0xff3f5efb), Color(0xfffc466b)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ).createShader(bounds),
-            child: const Text(
-              "Student List",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.white, // overridden by shader
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xff3f5efb), Color(0xfffc466b)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+                  child: const Text(
+                    "Student List",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // overridden by shader
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
-
 
               /// 📊 TABLE
               Expanded(
@@ -195,22 +195,23 @@ docs.sort((a, b) {
                       scrollDirection: Axis.horizontal,
                       child: DataTable(
                         columnSpacing: 28,
-                        headingRowColor:
-                            WidgetStateProperty.all(Colors.blue.shade50),
-                       columns: const [
-  DataColumn(label: Text("Sr.No")),
-  DataColumn(label: Text("Name")),
-  DataColumn(label: Text("Email")),
-  DataColumn(label: Text("Phone")),
-  DataColumn(label: Text("Roll No")),
-  DataColumn(label: Text("Class")),
-  DataColumn(label: Text("College")),
-  DataColumn(label: Text("Stream")),
-  DataColumn(label: Text("Course")),
-  DataColumn(label: Text("Batch")),
-  DataColumn(label: Text("Password")),
-  DataColumn(label: Text("Actions")),
-],
+                        headingRowColor: WidgetStateProperty.all(
+                          Colors.blue.shade50,
+                        ),
+                        columns: const [
+                          DataColumn(label: Text("Sr.No")),
+                          DataColumn(label: Text("Name")),
+                          DataColumn(label: Text("Email")),
+                          DataColumn(label: Text("Phone")),
+                          DataColumn(label: Text("Roll No")),
+                          DataColumn(label: Text("Class")),
+                          DataColumn(label: Text("Password")),
+                          DataColumn(label: Text("College")),
+                          DataColumn(label: Text("Stream")),
+                          DataColumn(label: Text("Course")),
+                          DataColumn(label: Text("Batch")),
+                          DataColumn(label: Text("Actions")),
+                        ],
 
                         rows: List.generate(docs.length, (index) {
                           final doc = docs[index];
@@ -218,78 +219,110 @@ docs.sort((a, b) {
                           final isEditing = editingStudentId == doc.id;
 
                           return DataRow(
-  cells: [
-    DataCell(Text("${index + 1}")),
+                            cells: [
+                              DataCell(Text("${index + 1}")),
 
-    DataCell(isEditing
-        ? TextField(controller: nameCtrl)
-        : Text(data['name'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: nameCtrl)
+                                    : Text(data['name'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: emailCtrl)
-        : Text(data['email'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: emailCtrl)
+                                    : Text(data['email'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: phoneCtrl)
-        : Text(data['phone'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: phoneCtrl)
+                                    : Text(data['phone'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: rollCtrl)
-        : Text(data['roll_no'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: rollCtrl)
+                                    : Text(data['roll_no'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: classCtrl)
-        : Text(data['class'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: classCtrl)
+                                    : Text(data['class'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: passwordCtrl)
-        : Text(data['password'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: passwordCtrl)
+                                    : Text(data['password'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: collegeCtrl)
-        : Text(data['college_name'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: collegeCtrl)
+                                    : Text(data['college_name'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: streamCtrl)
-        : Text(data['stream'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: streamCtrl)
+                                    : Text(data['stream'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: courseCtrl)
-        : Text(data['course_name'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: courseCtrl)
+                                    : Text(data['course_name'] ?? ''),
+                              ),
 
-    DataCell(isEditing
-        ? TextField(controller: batchCtrl)
-        : Text(data['batch_name'] ?? '')),
+                              DataCell(
+                                isEditing
+                                    ? TextField(controller: batchCtrl)
+                                    : Text(data['batch_name'] ?? ''),
+                              ),
 
-    DataCell(
-      Row(
-        children: [
-          if (isEditing) ...[
-            IconButton(
-              icon: const Icon(Icons.check, color: Colors.green),
-              onPressed: () => updateStudent(doc.id),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, color: Colors.grey),
-              onPressed: () =>
-                  setState(() => editingStudentId = null),
-            ),
-          ] else ...[
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue),
-              onPressed: () => startEdit(doc),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => deleteStudent(doc.id),
-            ),
-          ],
-        ],
-      ),
-    ),
-  ],
-);
-
+                              DataCell(
+                                Row(
+                                  children: [
+                                    if (isEditing) ...[
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.check,
+                                          color: Colors.green,
+                                        ),
+                                        onPressed: () => updateStudent(doc.id),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.close,
+                                          color: Colors.grey,
+                                        ),
+                                        onPressed: () => setState(
+                                          () => editingStudentId = null,
+                                        ),
+                                      ),
+                                    ] else ...[
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Colors.blue,
+                                        ),
+                                        onPressed: () => startEdit(doc),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: () => deleteStudent(doc.id),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
                         }),
                       ),
                     ),
